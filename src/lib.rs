@@ -37,6 +37,7 @@ pub fn format_json(json: &str, indentation: Option<&str>) -> String {
             let mut auto_push = true;
             let mut request_newline = false;
             let old_level = indent_level;
+
             match char {
                 '"' => in_string = true,
                 ' ' | '\n' | '\t' => continue,
