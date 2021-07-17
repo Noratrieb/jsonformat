@@ -30,6 +30,6 @@ Reads from stdin if no file is supplied.
 Outputs to stdout if no output file is specified.
 
 ## How?
-`jsonformat` does not actually parse the json, it just loops through each characters and keeps track of some flags. It then copies these characters to the output buffer, adding and removing whitespace.
+`jsonformat` does not actually parse the json, it just loops through each character and keeps track of some flags. It then copies these characters to the output buffer, adding and removing whitespace.
 
 The code is currently a bit chaotic, but it works and is fast, so good enough for now. Maybe it could profit from SIMD in the future, but I have never used it and I don't know whether it would work. Maybe some day...
