@@ -8,7 +8,7 @@ fn main() -> Result<(), io::Error> {
     let matches = clap_app!(jsonformat =>
         (version: "1.0")
         (author: "nilstrieb <nilstrieb@gmail.com>")
-        (about: "Formats json")
+        (about: "Formats json from stdin or from a file")
         (@arg indentation: -i --indent +takes_value "Set the indentation used (\\s for space, \\t for tab)")
         (@arg output: -o --output +takes_value "The output file for the formatted json")
         (@arg input: "The input file to format")
@@ -25,9 +25,15 @@ fn main() -> Result<(), io::Error> {
         }
     };
 
-    let replaced_indent = matches
-        .value_of("indentation")
-        .map(|value| value.replace("s", " ").replace("t", "\t"));
+    let replaced_indent = matches.value_of("indentation").map(|value| {
+        value
+            .to_lowercase()
+            .chars()
+            .filter(|c| ['s', 't'].contains(c))
+            .collect::<String>()
+            .replace("s", " ")
+            .replace("t", "\t")
+    });
 
     let formatted = format_json(&str, replaced_indent.as_deref());
 
