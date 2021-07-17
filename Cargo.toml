@@ -1,0 +1,10 @@
+[package]
+name = "jsonformat"
+version = "0.1.0"
+authors = ["Nilstrieb <nilstrieb@gmail.com>"]
+edition = "2018"
+description = "Reads raw json from stdin and formats it to stdout"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
