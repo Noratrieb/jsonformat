@@ -1,5 +1,14 @@
-pub fn format_json(json: &str, indent_str: &str) -> String {
-    let mut out = String::with_capacity(json.len()); // at least as big as the input
+///
+/// # Formats a json string
+///
+/// The indentation can be set to any custom value  
+/// The default value is two spaces
+/// The default indentation is faster than a custom one
+///
+pub fn format_json(json: &str, indentation: Option<&str>) -> String {
+    // at least as big as the input to avoid resizing
+    // this might be too big if the input string is formatted in a weird way, but that's not expected
+    let mut out = String::with_capacity(json.len());
 
     let mut escaped = false;
     let mut in_string = false;
@@ -42,9 +51,9 @@ pub fn format_json(json: &str, indent_str: &str) -> String {
                 '}' | ']' => {
                     indent_level -= 1;
                     if !newline_requested {
-                        // see comment above
+                        // see comment below about newline_requested
                         out.push('\n');
-                        indent(&mut out, indent_level, indent_str);
+                        indent(&mut out, indent_level, indentation);
                     }
                 }
                 ':' => {
@@ -59,8 +68,10 @@ pub fn format_json(json: &str, indent_str: &str) -> String {
             }
             if newline_requested && char != ']' && char != '}' {
                 // newline only happens after { [ and ,
+                // this means we can safely assume that it being followed up by } or ]
+                // means an empty object/array
                 out.push('\n');
-                indent(&mut out, old_level, indent_str);
+                indent(&mut out, old_level, indentation);
             }
 
             if auto_push {
@@ -74,76 +85,83 @@ pub fn format_json(json: &str, indent_str: &str) -> String {
     out
 }
 
-fn indent(buf: &mut String, level: usize, indent_str: &str) {
+fn indent(buf: &mut String, level: usize, indent_str: Option<&str>) {
     for _ in 0..level {
-        buf.push_str(indent_str);
+        match indent_str {
+            None => {
+                buf.push(' ');
+                buf.push(' ');
+            }
+            Some(indent) => {
+                buf.push_str(indent);
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
-    const INDENT: &str = " ";
     use super::*;
 
     #[test]
     fn echoes_primitive() {
         let json = "1.35";
-        assert_eq!(json, format_json(json, INDENT));
+        assert_eq!(json, format_json(json, None));
     }
 
     #[test]
     fn ignore_whitespace_in_string() {
         let json = "\" hallo \"";
-        assert_eq!(json, format_json(json, INDENT));
+        assert_eq!(json, format_json(json, None));
     }
 
     #[test]
     fn remove_leading_whitespace() {
         let json = "   0";
         let expected = "0";
-        assert_eq!(expected, format_json(json, INDENT));
+        assert_eq!(expected, format_json(json, None));
     }
 
     #[test]
     fn handle_escaped_strings() {
         let json = "  \" hallo \\\" \" ";
         let expected = "\" hallo \\\" \"";
-        assert_eq!(expected, format_json(json, INDENT));
+        assert_eq!(expected, format_json(json, None));
     }
 
     #[test]
     fn simple_object() {
         let json = "{\"a\":0}";
         let expected = "{
- \"a\": 0
+  \"a\": 0
 }";
-        assert_eq!(expected, format_json(json, INDENT));
+        assert_eq!(expected, format_json(json, None));
     }
 
     #[test]
     fn simple_array() {
         let json = "[1,2,null]";
         let expected = "[
- 1,
- 2,
- null
+  1,
+  2,
+  null
 ]";
-        assert_eq!(expected, format_json(json, INDENT));
+        assert_eq!(expected, format_json(json, None));
     }
 
     #[test]
     fn array_of_object() {
         let json = "[{\"a\": 0}, {}, {\"a\": null}]";
         let expected = "[
- {
-  \"a\": 0
- },
- {},
- {
-  \"a\": null
- }
+  {
+    \"a\": 0
+  },
+  {},
+  {
+    \"a\": null
+  }
 ]";
 
-        assert_eq!(expected, format_json(json, INDENT));
+        assert_eq!(expected, format_json(json, None));
     }
 }
