@@ -165,4 +165,19 @@ mod test {
 
         assert_eq!(expected, format_json(json, None));
     }
+
+    #[test]
+    fn already_formatted() {
+        let expected = "[
+  {
+    \"a\": 0
+  },
+  {},
+  {
+    \"a\": null
+  }
+]";
+
+        assert_eq!(expected, format_json(expected, None));
+    }
 }
