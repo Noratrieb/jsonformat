@@ -12,7 +12,7 @@ pub fn format_json(json: &str, indentation: Option<&str>) -> String {
 
     let mut escaped = false;
     let mut in_string = false;
-    let mut indent_level = 0;
+    let mut indent_level = 0usize;
     let mut newline_requested = false; // invalidated if next character is ] or }
 
     for char in json.chars() {
@@ -50,7 +50,7 @@ pub fn format_json(json: &str, indentation: Option<&str>) -> String {
                     request_newline = true;
                 }
                 '}' | ']' => {
-                    indent_level -= 1;
+                    indent_level = indent_level.saturating_sub(1);
                     if !newline_requested {
                         // see comment below about newline_requested
                         out.push('\n');
