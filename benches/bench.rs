@@ -1,10 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use jsonformat::format_json;
+use jsonformat::{format_json, Indentation};
 use std::{fs, io};
 
 /// You need a json file called massive.json in your project root
 fn format_massive_json(file: &str) -> io::Result<String> {
-    Ok(format_json(&file, None))
+    Ok(format_json(&file, Indentation::Default))
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

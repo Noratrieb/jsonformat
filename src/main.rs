@@ -1,5 +1,5 @@
 use clap::clap_app;
-use jsonformat::format_json;
+use jsonformat::{format_json, Indentation};
 use std::fs;
 use std::io;
 use std::io::Read;
@@ -36,7 +36,12 @@ fn main() -> Result<(), io::Error> {
             .replace("t", "\t")
     });
 
-    let formatted = format_json(&str, replaced_indent.as_deref());
+    let indent = match replaced_indent {
+        Some(ref str) => Indentation::Custom(str),
+        None => Indentation::Default,
+    };
+
+    let formatted = format_json(&str, indent);
 
     let mut output = matches.value_of("output");
     let mut windows_output_default_file: Option<String> = None;
