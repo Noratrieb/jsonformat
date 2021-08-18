@@ -5,9 +5,8 @@
 It formats over 60MB of nested JSON in under 0.4s.
 
 ## Install
-Currently, you have to build and install it yourself.  
-`cargo build --release`  
-The executable can then be found in `target/release/jsonformat`
+You need Rust installed on your system  
+`cargo install jsonformat`
 
 ## Usage
 ```
