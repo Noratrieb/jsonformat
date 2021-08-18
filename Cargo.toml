@@ -3,15 +3,34 @@ name = "jsonformat"
 version = "0.1.0"
 authors = ["Nilstrieb <nilstrieb@gmail.com>"]
 edition = "2018"
-description = "Reads raw json from stdin and formats it to stdout"
+license = "MIT"
+description = "Formats JSON extremely fast"
+homepage = "https://github.com/Nilstrieb/jsonformat"
+repository = "https://github.com/Nilstrieb/jsonformat"
+readme = "README.md"
+keywords = ["json", "formatting", "cli"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "3.0.0-beta.2"
+clap = { version= "3.0.0-beta.2", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
+
+[features]
+default = ["bin"]
+bin = ["clap"]
+
+[lib]
+name = "jsonformat"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jsonformat"
+path = "src/main.rs"
+required-features = ["bin"]
 
 [[bench]]
 name = "bench"
