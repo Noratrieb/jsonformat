@@ -3,6 +3,10 @@
 //!
 //! It does not do anything more than that, which makes it so fast.
 
+use std::io::{BufReader, BufWriter, Write};
+use utf8_chars::BufReadCharsExt;
+use std::error::Error;
+
 ///
 /// Set the indentation used for the formatting.
 ///
@@ -24,16 +28,32 @@ pub enum Indentation<'a> {
 /// The default indentation is faster than a custom one
 ///
 pub fn format_json(json: &str, indentation: Indentation) -> String {
-    // at least as big as the input to avoid resizing
-    // this might be too big if the input string is formatted in a weird way, but that's not expected, and it will still be efficient
-    let mut out = String::with_capacity(json.len());
+    let mut reader = BufReader::new(json.as_bytes());
+    let mut writer = BufWriter::new(Vec::new());
+
+    format_json_buffered(&mut reader, &mut writer, indentation).unwrap();
+    String::from_utf8(writer.into_inner().unwrap()).unwrap()
+}
+
+///
+/// # Formats a json string
+///
+/// The indentation can be set to any value using [Indentation](jsonformat::Indentation)
+/// The default value is two spaces
+/// The default indentation is faster than a custom one
+///
+pub fn format_json_buffered<R, W>(reader: &mut BufReader<R>, writer: &mut BufWriter<W>, indentation: Indentation) -> Result<(), Box<dyn Error>>
+where
+  R: std::io::Read,
+  W: std::io::Write {
 
     let mut escaped = false;
     let mut in_string = false;
     let mut indent_level = 0usize;
     let mut newline_requested = false; // invalidated if next character is ] or }
 
-    for char in json.chars() {
+    for char in reader.chars() {
+        let char = char?;
         if in_string {
             let mut escape_here = false;
             match char {
@@ -49,7 +69,7 @@ pub fn format_json(json: &str, indentation: Indentation) -> String {
                 }
                 _ => {}
             }
-            out.push(char);
+            writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
             escaped = escape_here;
         } else {
             let mut auto_push = true;
@@ -71,14 +91,14 @@ pub fn format_json(json: &str, indentation: Indentation) -> String {
                     indent_level = indent_level.saturating_sub(1);
                     if !newline_requested {
                         // see comment below about newline_requested
-                        out.push('\n');
-                        indent(&mut out, indent_level, indentation);
+                        writeln!(writer)?;
+                        indent_buffered(writer, indent_level, indentation)?;
                     }
                 }
                 ':' => {
                     auto_push = false;
-                    out.push(char);
-                    out.push(' ');
+                    writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
+                    writer.write_all(" ".as_bytes())?;
                 }
                 ',' => {
                     request_newline = true;
@@ -89,33 +109,37 @@ pub fn format_json(json: &str, indentation: Indentation) -> String {
                 // newline only happens after { [ and ,
                 // this means we can safely assume that it being followed up by } or ]
                 // means an empty object/array
-                out.push('\n');
-                indent(&mut out, old_level, indentation);
+                writeln!(writer)?;
+                indent_buffered(writer, old_level, indentation)?;
             }
 
             if auto_push {
-                out.push(char);
+                writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
             }
 
             newline_requested = request_newline;
         }
     }
 
-    out
+    Ok(())
 }
 
-fn indent(buf: &mut String, level: usize, indent_str: Indentation) {
+fn indent_buffered<W>(writer: &mut BufWriter<W>, level: usize, indent_str: Indentation) -> Result<(), Box<dyn Error>>
+where
+  W: std::io::Write {
     for _ in 0..level {
         match indent_str {
             Indentation::Default => {
-                buf.push(' ');
-                buf.push(' ');
+                writer.write_all(" ".as_bytes())?;
+                writer.write_all(" ".as_bytes())?;
             }
             Indentation::Custom(indent) => {
-                buf.push_str(indent);
+                writer.write_all(indent.as_bytes())?;
             }
         }
     }
+
+    Ok(())
 }
 
 #[cfg(test)]

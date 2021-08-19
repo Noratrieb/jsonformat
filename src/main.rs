@@ -1,10 +1,10 @@
 use clap::clap_app;
-use jsonformat::{format_json, Indentation};
-use std::fs;
-use std::io;
-use std::io::Read;
+use jsonformat::{Indentation, format_json_buffered};
+use std::error::Error;
+use std::fs::File;
+use std::io::{BufReader, BufWriter, Read, Write};
 
-fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(jsonformat =>
         (version: "1.1")
         (author: "nilstrieb <nilstrieb@gmail.com>")
@@ -16,13 +16,13 @@ fn main() -> Result<(), io::Error> {
     )
     .get_matches();
 
-    let str = match matches.value_of("input") {
-        Some(path) => fs::read_to_string(path)?,
+    let reader: Box<dyn Read> = match matches.value_of("input") {
+        Some(path) => {
+            let f = File::open(path)?;
+            Box::new(BufReader::new(f))
+        },
         None => {
-            let mut buf = String::new();
-            let stdin = std::io::stdin();
-            stdin.lock().read_to_string(&mut buf)?;
-            buf
+            Box::new(std::io::stdin())
         }
     };
 
@@ -41,8 +41,6 @@ fn main() -> Result<(), io::Error> {
         None => Indentation::Default,
     };
 
-    let formatted = format_json(&str, indent);
-
     let mut output = matches.value_of("output");
     let mut windows_output_default_file: Option<String> = None;
 
@@ -57,12 +55,16 @@ fn main() -> Result<(), io::Error> {
 
     output = windows_output_default_file.as_deref().or(output);
 
-    match output {
+    let writer : Box<dyn Write> = match output {
         Some(file) => {
-            fs::write(file, formatted)?;
+            Box::new(File::create(file)?)
         }
-        None => println!("{}", formatted),
-    }
+        None => Box::new(std::io::stdout()),
+    };
+
+    let mut reader = BufReader::new(reader);
+    let mut writer = BufWriter::new(writer);
+    format_json_buffered(&mut reader, &mut writer, indent)?;
 
     Ok(())
 }
