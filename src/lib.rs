@@ -3,9 +3,9 @@
 //!
 //! It does not do anything more than that, which makes it so fast.
 
-use std::io::{BufReader, BufWriter, Write};
-use utf8_chars::BufReadCharsExt;
 use std::error::Error;
+use std::io::{BufReader, BufWriter, Read, Write};
+use utf8_chars::BufReadCharsExt;
 
 ///
 /// Set the indentation used for the formatting.
@@ -42,11 +42,15 @@ pub fn format_json(json: &str, indentation: Indentation) -> String {
 /// The default value is two spaces
 /// The default indentation is faster than a custom one
 ///
-pub fn format_json_buffered<R, W>(reader: &mut BufReader<R>, writer: &mut BufWriter<W>, indentation: Indentation) -> Result<(), Box<dyn Error>>
+pub fn format_json_buffered<R, W>(
+    reader: &mut BufReader<R>,
+    writer: &mut BufWriter<W>,
+    indentation: Indentation,
+) -> Result<(), Box<dyn Error>>
 where
-  R: std::io::Read,
-  W: std::io::Write {
-
+    R: Read,
+    W: Write,
+{
     let mut escaped = false;
     let mut in_string = false;
     let mut indent_level = 0usize;
@@ -124,9 +128,14 @@ where
     Ok(())
 }
 
-fn indent_buffered<W>(writer: &mut BufWriter<W>, level: usize, indent_str: Indentation) -> Result<(), Box<dyn Error>>
+fn indent_buffered<W>(
+    writer: &mut BufWriter<W>,
+    level: usize,
+    indent_str: Indentation,
+) -> Result<(), Box<dyn Error>>
 where
-  W: std::io::Write {
+    W: std::io::Write,
+{
     for _ in 0..level {
         match indent_str {
             Indentation::Default => {
