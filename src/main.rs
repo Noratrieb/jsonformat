@@ -1,5 +1,5 @@
 use clap::clap_app;
-use jsonformat::{Indentation, format_json_buffered};
+use jsonformat::{format_json_buffered, Indentation};
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
@@ -17,13 +17,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     .get_matches();
 
     let reader: Box<dyn Read> = match matches.value_of("input") {
-        Some(path) => {
-            let f = File::open(path)?;
-            Box::new(BufReader::new(f))
-        },
-        None => {
-            Box::new(std::io::stdin())
-        }
+        Some(path) => Box::new(File::open(path)?),
+        None => Box::new(std::io::stdin()),
     };
 
     let replaced_indent = matches.value_of("indentation").map(|value| {
@@ -55,10 +50,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     output = windows_output_default_file.as_deref().or(output);
 
-    let writer : Box<dyn Write> = match output {
-        Some(file) => {
-            Box::new(File::create(file)?)
-        }
+    let writer: Box<dyn Write> = match output {
+        Some(file) => Box::new(File::create(file)?),
         None => Box::new(std::io::stdout()),
     };
 
