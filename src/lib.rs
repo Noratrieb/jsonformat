@@ -5,7 +5,6 @@
 
 use std::error::Error;
 use std::io::{BufReader, BufWriter, Read, Write};
-use utf8_chars::BufReadCharsExt;
 
 ///
 /// Set the indentation used for the formatting.
@@ -56,24 +55,24 @@ where
     let mut indent_level = 0usize;
     let mut newline_requested = false; // invalidated if next character is ] or }
 
-    for char in reader.chars() {
+    for char in reader.bytes() {
         let char = char?;
         if in_string {
             let mut escape_here = false;
             match char {
-                '"' => {
+                b'"' => {
                     if !escaped {
                         in_string = false;
                     }
                 }
-                '\\' => {
+                b'\\' => {
                     if !escaped {
                         escape_here = true;
                     }
                 }
                 _ => {}
             }
-            writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
+            writer.write_all(&[char])?;
             escaped = escape_here;
         } else {
             let mut auto_push = true;
@@ -81,44 +80,44 @@ where
             let old_level = indent_level;
 
             match char {
-                '"' => in_string = true,
-                ' ' | '\n' | '\t' => continue,
-                '[' => {
+                b'"' => in_string = true,
+                b' ' | b'\n' | b'\t' => continue,
+                b'[' => {
                     indent_level += 1;
                     request_newline = true;
                 }
-                '{' => {
+                b'{' => {
                     indent_level += 1;
                     request_newline = true;
                 }
-                '}' | ']' => {
+                b'}' | b']' => {
                     indent_level = indent_level.saturating_sub(1);
                     if !newline_requested {
                         // see comment below about newline_requested
-                        writeln!(writer)?;
+                        writer.write_all(&[b'\n'])?;
                         indent_buffered(writer, indent_level, indentation)?;
                     }
                 }
-                ':' => {
+                b':' => {
                     auto_push = false;
-                    writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
-                    writer.write_all(" ".as_bytes())?;
+                    writer.write_all(&[char])?;
+                    writer.write_all(&[b' '])?;
                 }
-                ',' => {
+                b',' => {
                     request_newline = true;
                 }
                 _ => {}
             }
-            if newline_requested && char != ']' && char != '}' {
+            if newline_requested && char != b']' && char != b'}' {
                 // newline only happens after { [ and ,
                 // this means we can safely assume that it being followed up by } or ]
                 // means an empty object/array
-                writeln!(writer)?;
+                writer.write_all(&[b'\n'])?;
                 indent_buffered(writer, old_level, indentation)?;
             }
 
             if auto_push {
-                writer.write_all(char.encode_utf8(&mut [0; 4]).as_bytes())?;
+                writer.write_all(&[char])?;
             }
 
             newline_requested = request_newline;
@@ -139,8 +138,7 @@ where
     for _ in 0..level {
         match indent_str {
             Indentation::Default => {
-                writer.write_all(" ".as_bytes())?;
-                writer.write_all(" ".as_bytes())?;
+                writer.write_all(b"  ")?;
             }
             Indentation::Custom(indent) => {
                 writer.write_all(indent.as_bytes())?;
