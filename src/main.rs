@@ -16,9 +16,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .get_matches();
 
-    let reader: Box<dyn Read> = match matches.value_of("input") {
-        Some(path) => Box::new(File::open(path)?),
-        None => Box::new(std::io::stdin()),
+    // Note: on-stack dynamic dispatch
+    let (mut file, mut stdin);
+    let reader: &mut dyn Read = match matches.value_of("input") {
+        Some(path) => {
+            file = File::open(path)?;
+            &mut file
+        }
+        None => {
+            stdin = std::io::stdin();
+            &mut stdin
+        }
     };
 
     let replaced_indent = matches.value_of("indentation").map(|value| {
@@ -50,9 +58,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     output = windows_output_default_file.as_deref().or(output);
 
-    let writer: Box<dyn Write> = match output {
-        Some(file) => Box::new(File::create(file)?),
-        None => Box::new(std::io::stdout()),
+    // Note: on-stack dynamic dispatch
+    let (mut file, mut stdout);
+    let writer: &mut dyn Write = match output {
+        Some(filename) => {
+            file = File::create(filename)?;
+            &mut file
+        },
+        None => {
+            stdout = std::io::stdout();
+            &mut stdout
+        },
     };
 
     let mut reader = BufReader::new(reader);
