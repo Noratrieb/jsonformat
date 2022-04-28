@@ -14,8 +14,12 @@ use std::{
 /// but nothing is stopping you from doing that.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Indentation<'a> {
-    /// Use the default indentation, which is two spaces
+    /// Fast path for two spaces
     TwoSpace,
+    /// Fast path for four spaces
+    FourSpace,
+    /// Fast path for tab
+    Tab,
     /// Use a custom indentation String
     Custom(&'a str),
 }
@@ -141,6 +145,12 @@ where
         match indent_str {
             Indentation::TwoSpace => {
                 writer.write_all(b"  ")?;
+            }
+            Indentation::FourSpace => {
+                writer.write_all(b"    ")?;
+            }
+            Indentation::Tab => {
+                writer.write_all(b"\t")?;
             }
             Indentation::Custom(indent) => {
                 writer.write_all(indent.as_bytes())?;

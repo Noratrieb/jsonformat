@@ -1,4 +1,4 @@
-use std::{fs, io, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use jsonformat::{format, format_reader_writer, Indentation};
