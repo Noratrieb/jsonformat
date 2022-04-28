@@ -1,45 +1,52 @@
 use std::{
-    error::Error,
     fs::File,
+    io,
     io::{BufReader, BufWriter, Read, Write},
+    path::PathBuf,
 };
 
-use clap::clap_app;
+use anyhow::Context;
+use clap::Parser;
 use jsonformat::{format_reader_writer, Indentation};
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let matches = clap_app!(jsonformat =>
-        (version: "1.1")
-        (author: "nilstrieb <nilstrieb@gmail.com>")
-        (about: "Formats json from stdin or from a file")
-        (@arg stdout: -s --stdout "Output the result to stdout instead of the default output file. Windows only.")
-        (@arg indentation: -i --indent +takes_value "Set the indentation used (\\s for space, \\t for tab)")
-        (@arg output: -o --output +takes_value "The output file for the formatted json")
-        (@arg input: "The input file to format")
-    )
-    .get_matches();
+#[derive(Parser)]
+#[clap(author, about, version)]
+struct Options {
+    #[clap(short, long)]
+    indentation: Option<String>,
+    #[clap(short, long)]
+    output: Option<PathBuf>,
+    input: Option<PathBuf>,
+}
+
+fn main() -> anyhow::Result<()> {
+    let options = Options::parse();
 
     // Note: on-stack dynamic dispatch
-    let (mut file, mut stdin);
-    let reader: &mut dyn Read = match matches.value_of("input") {
+    // ugly af but works
+    let (mut file, stdin, mut stdin_lock);
+    let reader: &mut dyn Read = match &options.input {
         Some(path) => {
-            file = File::open(path)?;
+            file = File::open(path)
+                .context(format!("Name: {}", path.display()))
+                .context("Open input file")?;
             &mut file
         }
         None => {
-            stdin = std::io::stdin();
-            &mut stdin
+            stdin = io::stdin();
+            stdin_lock = stdin.lock();
+            &mut stdin_lock
         }
     };
 
-    let replaced_indent = matches.value_of("indentation").map(|value| {
+    let replaced_indent = options.indentation.map(|value| {
         value
             .to_lowercase()
             .chars()
             .filter(|c| ['s', 't'].contains(c))
             .collect::<String>()
-            .replace("s", " ")
-            .replace("t", "\t")
+            .replace('s', " ")
+            .replace('t', "\t")
     });
 
     let indent = match replaced_indent {
@@ -47,36 +54,25 @@ fn main() -> Result<(), Box<dyn Error>> {
         None => Indentation::Default,
     };
 
-    let mut output = matches.value_of("output");
-    let mut windows_output_default_file: Option<String> = None;
-
-    #[cfg(windows)]
-    if !matches.is_present("stdout") {
-        if let Some(file) = matches.value_of("input") {
-            // on windows, set the default output file if no stdout flag is provided
-            // this makes it work with drag and drop in windows explorer
-            windows_output_default_file = Some(file.replace(".json", "_f.json"))
-        }
-    }
-
-    output = windows_output_default_file.as_deref().or(output);
-
     // Note: on-stack dynamic dispatch
-    let (mut file, mut stdout);
-    let writer: &mut dyn Write = match output {
-        Some(filename) => {
-            file = File::create(filename)?;
+    let (mut file, stdout, mut stdout_lock);
+    let writer: &mut dyn Write = match &options.output {
+        Some(path) => {
+            file = File::create(path)
+                .context(path.display().to_string())
+                .context("Open output file")?;
             &mut file
         }
         None => {
-            stdout = std::io::stdout();
-            &mut stdout
+            stdout = io::stdout();
+            stdout_lock = stdout.lock();
+            &mut stdout_lock
         }
     };
 
     let mut reader = BufReader::new(reader);
     let mut writer = BufWriter::new(writer);
-    format_reader_writer(&mut reader, &mut writer, indent)?;
+    format_reader_writer(&mut reader, &mut writer, indent).context("failed to read or write")?;
 
     Ok(())
 }
