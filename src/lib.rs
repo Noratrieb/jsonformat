@@ -15,9 +15,15 @@ use std::{
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Indentation<'a> {
     /// Use the default indentation, which is two spaces
-    Default,
+    TwoSpace,
     /// Use a custom indentation String
     Custom(&'a str),
+}
+
+impl Default for Indentation<'_> {
+    fn default() -> Self {
+        Self::TwoSpace
+    }
 }
 
 /// # Formats a json string
@@ -91,7 +97,7 @@ where
                     indent_level = indent_level.saturating_sub(1);
                     if !newline_requested {
                         // see comment below about newline_requested
-                        writer.write_all(&[b'\n'])?;
+                        writer.write_all(b"\n")?;
                         indent(&mut writer, indent_level, indentation)?;
                     }
                 }
@@ -109,7 +115,7 @@ where
                 // newline only happens after { [ and ,
                 // this means we can safely assume that it being followed up by } or ]
                 // means an empty object/array
-                writer.write_all(&[b'\n'])?;
+                writer.write_all(b"\n")?;
                 indent(&mut writer, old_level, indentation)?;
             }
 
@@ -121,6 +127,9 @@ where
         }
     }
 
+    // trailing newline
+    writer.write_all(b"\n")?;
+
     Ok(())
 }
 
@@ -130,7 +139,7 @@ where
 {
     for _ in 0..level {
         match indent_str {
-            Indentation::Default => {
+            Indentation::TwoSpace => {
                 writer.write_all(b"  ")?;
             }
             Indentation::Custom(indent) => {
@@ -148,28 +157,28 @@ mod test {
 
     #[test]
     fn echoes_primitive() {
-        let json = "1.35";
-        assert_eq!(json, format(json, Indentation::Default));
+        let json = "1.35\n";
+        assert_eq!(json, format(json, Indentation::TwoSpace));
     }
 
     #[test]
     fn ignore_whitespace_in_string() {
-        let json = "\" hallo \"";
-        assert_eq!(json, format(json, Indentation::Default));
+        let json = "\" hallo \"\n";
+        assert_eq!(json, format(json, Indentation::TwoSpace));
     }
 
     #[test]
     fn remove_leading_whitespace() {
         let json = "   0";
-        let expected = "0";
-        assert_eq!(expected, format(json, Indentation::Default));
+        let expected = "0\n";
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 
     #[test]
     fn handle_escaped_strings() {
         let json = "  \" hallo \\\" \" ";
-        let expected = "\" hallo \\\" \"";
-        assert_eq!(expected, format(json, Indentation::Default));
+        let expected = "\" hallo \\\" \"\n";
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 
     #[test]
@@ -177,8 +186,9 @@ mod test {
         let json = "{\"a\":0}";
         let expected = "{
   \"a\": 0
-}";
-        assert_eq!(expected, format(json, Indentation::Default));
+}
+";
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 
     #[test]
@@ -188,8 +198,9 @@ mod test {
   1,
   2,
   null
-]";
-        assert_eq!(expected, format(json, Indentation::Default));
+]
+";
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 
     #[test]
@@ -203,9 +214,10 @@ mod test {
   {
     \"a\": null
   }
-]";
+]
+";
 
-        assert_eq!(expected, format(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 
     #[test]
@@ -218,8 +230,9 @@ mod test {
   {
     \"a\": null
   }
-]";
+]
+";
 
-        assert_eq!(expected, format(expected, Indentation::Default));
+        assert_eq!(expected, format(expected, Indentation::TwoSpace));
     }
 }
