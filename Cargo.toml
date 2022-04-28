@@ -1,37 +1,22 @@
+[workspace]
+members = [".", "jsonformat-cli"]
+
 [package]
 name = "jsonformat"
 version = "1.2.0"
 authors = ["Nilstrieb <nilstrieb@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 description = "Formats JSON extremely fast"
 homepage = "https://github.com/Nilstrieb/jsonformat"
 repository = "https://github.com/Nilstrieb/jsonformat"
 readme = "README.md"
-keywords = ["json", "formatting", "cli"]
-categories = ["command-line-utilities"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-clap = { version= "2.33.3", optional = true }
-
-[dev-dependencies]
-criterion = "0.3"
-
-[features]
-default = ["bin"]
-bin = ["clap"]
-
-[lib]
-name = "jsonformat"
-path = "src/lib.rs"
-
-[[bin]]
-name = "jsonformat"
-path = "src/main.rs"
-required-features = ["bin"]
+keywords = ["json", "formatting"]
+categories = ["parser-implementations"]
 
 [[bench]]
 name = "bench"
 harness = false
+
+[dev-dependencies]
+criterion = "0.3.5"
