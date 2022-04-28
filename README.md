@@ -4,27 +4,32 @@
 
 It formats over 20MB of nested JSON in 60ms.
 
-For the library, look at [docs.rs](https://docs.rs/jsonformat)
+## Library crate
 
-## Install
+For the library crate, look at [docs.rs](https://docs.rs/jsonformat)
+
+## Binary Install
 You need Rust installed on your system  
 `cargo install jsonformat-cli`
 
-## Usage
+## Binary Usage
 ```
+jsonformat-cli 0.2.0
+Nilstrieb <nilstrieb@gmail.com>
+Formats JSON extremely fast
+
 USAGE:
-    jsonformat [OPTIONS] [input]
+    jsonformat [OPTIONS] [INPUT]
 
 ARGS:
-    <input>    The input file to format
-
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+    <INPUT>    The input file
 
 OPTIONS:
-    -i, --indent <indentation>    Set the indentation used (\s for space, \t for tab)
-    -o, --output <output>         The output file for the formatted json
+    -h, --help                         Print help information
+    -i, --indentation <INDENTATION>    The indentation, s will replaced by a space and t by a tab.
+                                       ss is the default
+    -o, --output <OUTPUT>              The output file
+    -V, --version                      Print version information
 ```
 
 Reads from stdin if no file is supplied.
