@@ -12,10 +12,13 @@ use jsonformat::{format_reader_writer, Indentation};
 #[derive(Parser)]
 #[clap(author, about, version)]
 struct Options {
+    /// The indentation, s will replaced by a space and t by a tab. ss is the default.
     #[clap(short, long)]
     indentation: Option<String>,
     #[clap(short, long)]
+    /// The output file
     output: Option<PathBuf>,
+    /// The input file
     input: Option<PathBuf>,
 }
 
@@ -51,7 +54,7 @@ fn main() -> anyhow::Result<()> {
 
     let indent = match replaced_indent {
         Some(ref str) => Indentation::Custom(str),
-        None => Indentation::Default,
+        None => Indentation::TwoSpace,
     };
 
     // Note: on-stack dynamic dispatch
