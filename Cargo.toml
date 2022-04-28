@@ -3,7 +3,7 @@ members = [".", "jsonformat-cli"]
 
 [package]
 name = "jsonformat"
-version = "1.2.0"
+version = "2.0.0"
 authors = ["Nilstrieb <nilstrieb@gmail.com>"]
 edition = "2021"
 license = "MIT"

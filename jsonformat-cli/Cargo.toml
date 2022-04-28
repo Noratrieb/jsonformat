@@ -15,7 +15,7 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-jsonformat = { path = "..", version = "1.2.0" }
+jsonformat = { path = "..", version = "2.0.0" }
 clap = "2.33.3"
 
 [[bin]]

@@ -1,8 +1,11 @@
+use std::{
+    error::Error,
+    fs::File,
+    io::{BufReader, BufWriter, Read, Write},
+};
+
 use clap::clap_app;
-use jsonformat::{format_json_buffered, Indentation};
-use std::error::Error;
-use std::fs::File;
-use std::io::{BufReader, BufWriter, Read, Write};
+use jsonformat::{format_reader_writer, Indentation};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = clap_app!(jsonformat =>
@@ -64,16 +67,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         Some(filename) => {
             file = File::create(filename)?;
             &mut file
-        },
+        }
         None => {
             stdout = std::io::stdout();
             &mut stdout
-        },
+        }
     };
 
     let mut reader = BufReader::new(reader);
     let mut writer = BufWriter::new(writer);
-    format_json_buffered(&mut reader, &mut writer, indent)?;
+    format_reader_writer(&mut reader, &mut writer, indent)?;
 
     Ok(())
 }
