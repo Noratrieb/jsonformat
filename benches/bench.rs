@@ -1,17 +1,32 @@
-use criterion::{criterion_group, criterion_main, Criterion};
-use jsonformat::{format_json, Indentation};
 use std::{fs, io};
 
-/// You need a json file called massive.json in your project root
-fn format_massive_json(file: &str) -> io::Result<String> {
-    Ok(format_json(&file, Indentation::Default))
-}
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use jsonformat::{format, format_reader_writer, Indentation};
 
 fn criterion_benchmark(c: &mut Criterion) {
-    let file = fs::read_to_string("massive.json").expect("massive.json file in project directory");
+    let file = include_str!("large-file.json");
 
-    c.bench_function("Format massive json", |b| {
-        b.iter(|| format_massive_json(&file))
+    c.bench_function("Format json default settings", |b| {
+        b.iter(|| {
+            let json = format(&file, Indentation::Default);
+            black_box(json);
+        })
+    });
+
+    c.bench_function("Format json custom indentation", |b| {
+        b.iter(|| {
+            let json = format(&file, Indentation::Custom("123456"));
+            black_box(json);
+        })
+    });
+
+    c.bench_function("Format json no utf8 validation", |b| {
+        b.iter(|| {
+            let mut writer = Vec::with_capacity(file.len() * 2);
+
+            format_reader_writer(file.as_bytes(), &mut writer, Indentation::Default).unwrap();
+            black_box(writer);
+        })
     });
 }
 

@@ -3,10 +3,11 @@
 //!
 //! It does not do anything more than that, which makes it so fast.
 
-use std::error::Error;
-use std::io::{BufReader, BufWriter, Read, Write};
+use std::{
+    io,
+    io::{Read, Write},
+};
 
-///
 /// Set the indentation used for the formatting.
 ///
 /// Note: It is *not* recommended to set indentation to anything oder than some spaces or some tabs,
@@ -19,33 +20,29 @@ pub enum Indentation<'a> {
     Custom(&'a str),
 }
 
-///
 /// # Formats a json string
 ///
-/// The indentation can be set to any value using [Indentation](jsonformat::Indentation)
+/// The indentation can be set to any value using [`Indentation`]
 /// The default value is two spaces
 /// The default indentation is faster than a custom one
-///
-pub fn format_json(json: &str, indentation: Indentation) -> String {
-    let mut reader = BufReader::new(json.as_bytes());
-    let mut writer = BufWriter::new(Vec::new());
+pub fn format(json: &str, indentation: Indentation) -> String {
+    let mut reader = json.as_bytes();
+    let mut writer = Vec::with_capacity(json.len());
 
-    format_json_buffered(&mut reader, &mut writer, indentation).unwrap();
-    String::from_utf8(writer.into_inner().unwrap()).unwrap()
+    format_reader_writer(&mut reader, &mut writer, indentation).unwrap();
+    String::from_utf8(writer).unwrap()
 }
 
-///
 /// # Formats a json string
 ///
-/// The indentation can be set to any value using [Indentation](jsonformat::Indentation)
+/// The indentation can be set to any value using [`Indentation`]
 /// The default value is two spaces
 /// The default indentation is faster than a custom one
-///
-pub fn format_json_buffered<R, W>(
-    reader: &mut BufReader<R>,
-    writer: &mut BufWriter<W>,
+pub fn format_reader_writer<R, W>(
+    reader: R,
+    mut writer: W,
     indentation: Indentation,
-) -> Result<(), Box<dyn Error>>
+) -> io::Result<()>
 where
     R: Read,
     W: Write,
@@ -95,7 +92,7 @@ where
                     if !newline_requested {
                         // see comment below about newline_requested
                         writer.write_all(&[b'\n'])?;
-                        indent_buffered(writer, indent_level, indentation)?;
+                        indent(&mut writer, indent_level, indentation)?;
                     }
                 }
                 b':' => {
@@ -113,7 +110,7 @@ where
                 // this means we can safely assume that it being followed up by } or ]
                 // means an empty object/array
                 writer.write_all(&[b'\n'])?;
-                indent_buffered(writer, old_level, indentation)?;
+                indent(&mut writer, old_level, indentation)?;
             }
 
             if auto_push {
@@ -127,13 +124,9 @@ where
     Ok(())
 }
 
-fn indent_buffered<W>(
-    writer: &mut BufWriter<W>,
-    level: usize,
-    indent_str: Indentation,
-) -> Result<(), Box<dyn Error>>
+fn indent<W>(writer: &mut W, level: usize, indent_str: Indentation) -> io::Result<()>
 where
-    W: std::io::Write,
+    W: Write,
 {
     for _ in 0..level {
         match indent_str {
@@ -156,27 +149,27 @@ mod test {
     #[test]
     fn echoes_primitive() {
         let json = "1.35";
-        assert_eq!(json, format_json(json, Indentation::Default));
+        assert_eq!(json, format(json, Indentation::Default));
     }
 
     #[test]
     fn ignore_whitespace_in_string() {
         let json = "\" hallo \"";
-        assert_eq!(json, format_json(json, Indentation::Default));
+        assert_eq!(json, format(json, Indentation::Default));
     }
 
     #[test]
     fn remove_leading_whitespace() {
         let json = "   0";
         let expected = "0";
-        assert_eq!(expected, format_json(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::Default));
     }
 
     #[test]
     fn handle_escaped_strings() {
         let json = "  \" hallo \\\" \" ";
         let expected = "\" hallo \\\" \"";
-        assert_eq!(expected, format_json(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::Default));
     }
 
     #[test]
@@ -185,7 +178,7 @@ mod test {
         let expected = "{
   \"a\": 0
 }";
-        assert_eq!(expected, format_json(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::Default));
     }
 
     #[test]
@@ -196,7 +189,7 @@ mod test {
   2,
   null
 ]";
-        assert_eq!(expected, format_json(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::Default));
     }
 
     #[test]
@@ -212,7 +205,7 @@ mod test {
   }
 ]";
 
-        assert_eq!(expected, format_json(json, Indentation::Default));
+        assert_eq!(expected, format(json, Indentation::Default));
     }
 
     #[test]
@@ -227,6 +220,6 @@ mod test {
   }
 ]";
 
-        assert_eq!(expected, format_json(expected, Indentation::Default));
+        assert_eq!(expected, format(expected, Indentation::Default));
     }
 }
