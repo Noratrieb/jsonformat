@@ -1,0 +1,23 @@
+[package]
+name = "jsonformat-cli"
+version = "0.1.0"
+authors = ["Nilstrieb <nilstrieb@gmail.com>"]
+edition = "2021"
+license = "MIT"
+description = "Formats JSON extremely fast"
+homepage = "https://github.com/Nilstrieb/jsonformat"
+repository = "https://github.com/Nilstrieb/jsonformat"
+readme = "README.md"
+keywords = ["json", "formatting", "cli"]
+categories = ["command-line-utilities"]
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+jsonformat = { path = "..", version = "1.2.0" }
+clap = "2.33.3"
+
+[[bin]]
+name = "jsonformat"
+path = "src/main.rs"
