@@ -13,7 +13,7 @@ repository = "https://github.com/Nilstrieb/jsonformat"
 readme = "README.md"
 keywords = ["json", "formatting"]
 categories = ["parser-implementations"]
-include = ["src/lib.rs", "Cargo.toml", "LICENSE", "README.md", "CHANGELOG.md"]
+include = ["src/lib.rs", "Cargo.toml", "LICENSE", "README.md", "CHANGELOG.md", "benches/bench.rs"]
 
 [[bench]]
 name = "bench"
