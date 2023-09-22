@@ -15,7 +15,6 @@ You need Rust installed on your system
 ## Binary Usage
 ```
 jsonformat-cli 0.2.0
-Nilstrieb <nilstrieb@gmail.com>
 Formats JSON extremely fast
 
 USAGE:
