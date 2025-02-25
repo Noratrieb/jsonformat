@@ -88,7 +88,7 @@ where
 
             match char {
                 b'"' => in_string = true,
-                b' ' | b'\n' | b'\t' => continue,
+                b' ' | b'\n' | b'\r' | b'\t' => continue,
                 b'[' => {
                     indent_level += 1;
                     request_newline = true;
@@ -244,5 +244,22 @@ mod test {
 ";
 
         assert_eq!(expected, format(expected, Indentation::TwoSpace));
+    }
+
+    #[test]
+    fn contains_crlf() {
+        let json = "[\r\n{\r\n\"a\":0\r\n},\r\n{},\r\n{\r\n\"a\": null\r\n}\r\n]\r\n";
+        let expected = "[
+  {
+    \"a\": 0
+  },
+  {},
+  {
+    \"a\": null
+  }
+]
+";
+
+        assert_eq!(expected, format(json, Indentation::TwoSpace));
     }
 }
