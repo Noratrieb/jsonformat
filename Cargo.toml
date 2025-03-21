@@ -4,12 +4,11 @@ members = [".", "jsonformat-cli"]
 [package]
 name = "jsonformat"
 version = "2.0.0"
-authors = ["Nilstrieb <nilstrieb@gmail.com>"]
-edition = "2021"
+edition = "2024"
 license = "MIT"
 description = "Formats JSON extremely fast"
-homepage = "https://github.com/Nilstrieb/jsonformat"
-repository = "https://github.com/Nilstrieb/jsonformat"
+homepage = "https://github.com/Noratrieb/jsonformat"
+repository = "https://github.com/Noratrieb/jsonformat"
 readme = "README.md"
 keywords = ["json", "formatting"]
 categories = ["parser-implementations"]
