@@ -1,6 +1,6 @@
 [package]
 name = "jsonformat-cli"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2024"
 license = "MIT"
 description = "Formats JSON extremely fast"
@@ -14,7 +14,7 @@ categories = ["command-line-utilities"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-jsonformat = { path = "..", version = "2.0.0" }
+jsonformat = { path = "..", version = "2.1.0" }
 clap = { version = "3.1.12", features = ["derive"] }
 anyhow = "1.0.57"
 
