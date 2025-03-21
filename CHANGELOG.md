@@ -1,3 +1,8 @@
+# 2.1.0
+
+- Strip `\r` from source (https://github.com/Noratrieb/jsonformat/pull/7)
+- Various project cleanups
+
 # 2.0.0
 
 There are many changes, the two formatting functions have been renamed, `format_reader_writer` now takes
