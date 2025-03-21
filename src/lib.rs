@@ -1,4 +1,3 @@
-//!
 //! jsonformat is a library for formatting json.
 //!
 //! It does not do anything more than that, which makes it so fast.
